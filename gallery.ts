@@ -15,6 +15,15 @@ class Game {
         this._engine = new BABYLON.Engine(this._canvas, true);
     }
   
+    initArt(): Array<Art> {
+        let artList = new Array<Art>();
+
+        artList.push(new Art('resources/image/spell-inktober-2018.jpg', 'resources/audio/Jam17-Ambient.wav'));
+        artList.push(new Art('resources/image/star-inktober-2018.jpg', 'resources/audio/Jam21-Twinkle.wav'));
+
+        return artList;
+    }
+
     createScene() : void {
         // Create a basic BJS Scene object.
         this._scene = new BABYLON.Scene(this._engine);
@@ -27,19 +36,6 @@ class Game {
         let plane = BABYLON.MeshBuilder.CreatePlane('plane',
                                     {width: 2, height: 3}, this._scene);
 
-        let meshAudio = new BABYLON.Sound("ambient", "resources/audio/Jam17-Ambient.wav", this._scene, null, {
-            loop: false, autoplay: true,
-            useCustomAttenuation: true,
-            maxDistance: 15
-        });
-        meshAudio.setAttenuationFunction(function (currentVolume, currentDistance, maxDistance, refDistance, rolloffFactor) {
-            if (currentDistance > maxDistance) return 0;
-            if (currentDistance == 0) {
-                return currentVolume;
-            }
-            return currentVolume * maxDistance / currentDistance;
-        });
-        meshAudio.attachToMesh(plane);
         // Move the sphere upward 1/2 of its height.
         plane.position.y = 1;
         plane.position.z = 5;
@@ -52,11 +48,18 @@ class Game {
         // Create a built-in "ground" shape.
         let floorName = 'ground';
         let ground = BABYLON.MeshBuilder.CreateGround(floorName,
-                                {width: 6, height: 6, subdivisions: 2}, this._scene);
+                                {width: 60, height: 60, subdivisions: 2}, this._scene);
         this._VRHelper.enableTeleportation({floorMeshName: floorName});
         //This will start casting a ray from either the user's camera or controllers. 
         //Where this ray intersects a mesh in the scene, a small gaze mesh will be placed to indicate to the user what is currently selected.
         //this._VRHelper.enableInteractions();
+
+        let art = this.initArt();
+
+        console.log(art.length);
+        art[0].createAt(this._scene, new BABYLON.Vector3(5, 1, 10));
+        art[1].createAt(this._scene, new BABYLON.Vector3(15, 1, -10));
+
     }
   
     doRender() : void {
