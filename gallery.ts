@@ -18,8 +18,9 @@ class Game {
     initArt(): Array<Art> {
         let artList = new Array<Art>();
 
-        artList.push(new Art('resources/image/spell-inktober-2018.jpg', 'resources/audio/Jam17-Ambient.wav'));
-        artList.push(new Art('resources/image/star-inktober-2018.jpg', 'resources/audio/Jam21-Twinkle.wav'));
+        
+        artList.push(new Art('spell'));
+        artList.push(new Art('star'));
 
         return artList;
     }
