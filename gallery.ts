@@ -7,6 +7,7 @@ class Game {
     private _scene: BABYLON.Scene;
     private _camera: BABYLON.FreeCamera;
     private _light: BABYLON.Light;
+    private _VRHelper: BABYLON.VRExperienceHelper;
 
     constructor(canvasElementId : string) {
         // Create canvas and engine.
@@ -17,19 +18,7 @@ class Game {
     createScene() : void {
         // Create a basic BJS Scene object.
         this._scene = new BABYLON.Scene(this._engine);
-
-        // Create a FreeCamera, and set its position to (x:0, y:5, z:-10).
-        this._camera = new BABYLON.WebVRFreeCamera('camera1', new BABYLON.Vector3(0, 0, 0), this._scene);
-
-        // Target the camera to scene origin.
-        //this._camera.setTarget(BABYLON.Vector3.Zero()); not for vr camera
-
-        // Attach the camera to the canvas.
-        this._scene.onPointerDown = function () {
-            console.log("pointer down");
-            this._scene.onPointerDown = undefined;
-            this._camera.attachControl(this._canvas, true);
-        }.bind(this);
+        this._VRHelper = this._scene.createDefaultVRExperience();
 
         // Create a basic light, aiming 0,1,0 - meaning, to the sky.
         this._light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), this._scene);
@@ -55,9 +44,19 @@ class Game {
         plane.position.y = 1;
         plane.position.z = 5;
 
+        //"\resources\inktobertopics2018.jpg"
+        var titleMaterial = new BABYLON.StandardMaterial('title', this._scene);
+        titleMaterial.diffuseTexture = new BABYLON.Texture('resources/inktobertopics2018.jpg', this._scene);
+        plane.material = titleMaterial;
+
         // Create a built-in "ground" shape.
-        let ground = BABYLON.MeshBuilder.CreateGround('ground',
+        let floorName = 'ground';
+        let ground = BABYLON.MeshBuilder.CreateGround(floorName,
                                 {width: 6, height: 6, subdivisions: 2}, this._scene);
+        this._VRHelper.enableTeleportation({floorMeshName: floorName});
+        //This will start casting a ray from either the user's camera or controllers. 
+        //Where this ray intersects a mesh in the scene, a small gaze mesh will be placed to indicate to the user what is currently selected.
+        //this._VRHelper.enableInteractions();
     }
   
     doRender() : void {
