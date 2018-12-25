@@ -56,9 +56,10 @@ class Game {
 
         let art = this.initArt();
 
-        console.log(art.length);
         art[0].createAt(this._scene, new BABYLON.Vector3(5, 1, 10));
         art[1].createAt(this._scene, new BABYLON.Vector3(15, 1, -10));
+
+
 
     }
   
