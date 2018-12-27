@@ -18,6 +18,7 @@ class Game {
   
     setupArt(): void {
         this._artList = new Array<Art>(
+            new Art(21, 'drain', 'Drain', new BABYLON.Vector3(15, 1, -10)),
             new Art(8, 'star', 'Twinkle', new BABYLON.Vector3(15, 1, -10)),
             new Art(5, 'chicken', 'Chicken', new BABYLON.Vector3(-15, 1, -10)),
             new Art(4, 'spell', 'Ambient', new BABYLON.Vector3(5, 1, 10)),
@@ -47,7 +48,22 @@ class Game {
 
     rayCast(ray: BABYLON.Ray) {
         console.log('raycasting: ' + ray);
-        BABYLON.RayHelper.CreateAndShow(ray, this._scene, BABYLON.Color3.Red());
+        //BABYLON.RayHelper.CreateAndShow(ray, this._scene, BABYLON.Color3.Red());
+
+        let pickResult = this._scene.pickWithRay(ray);
+        if (pickResult.hit == true) {
+            console.log("ray intersects with mesh");
+            console.log("ray hit: " + pickResult.hit);
+            let p = pickResult.pickedPoint;
+            console.log("picked point: " + p.x + " " + p.y + " " + p.z);
+
+            if (!Art.IsPlayerNearArt) {
+                let art = this._artList.pop();
+                if (art) {
+                    art.createAt(this._scene, p);
+                }
+            }
+        }
     }
 
     setupVR() {
@@ -55,10 +71,12 @@ class Game {
         this._VRHelper = this._scene.createDefaultVRExperience();
         this._VRHelper.onControllerMeshLoaded.add((webVRController)=>{
             var controllerMesh = webVRController.mesh;
-            webVRController.onTriggerStateChangedObservable.add(()=>{
-                // Trigger pressed event
-                let ray = webVRController.getForwardRay(5);
-                game.rayCast(ray);
+            webVRController.onTriggerStateChangedObservable.add((state)=>{
+                if (state.value == 1) {
+                    // Trigger pressed event
+                    let ray = webVRController.getForwardRay(20);
+                    game.rayCast(ray);
+                }
             });
         });
         this._VRHelper.enableInteractions();
@@ -106,14 +124,14 @@ class Game {
         
         var vrHelper = this._VRHelper;
         var scene = this._scene;
-        BABYLON.SceneLoader.Append("./resources/REMPART-UPPER/", "scene.gltf", this._scene, function (newScene) {
+        BABYLON.SceneLoader.Append("./resources/environment/", "rempart.glb", this._scene, function (newScene) {
             console.log('scene 1 loaded with ' + newScene.meshes.length + 'meshes');
             // for (let i = 0; i < newScene.meshes.length; i++) { 
             //     let mesh = newScene.meshes[i];
             // }
 
-            BABYLON.SceneLoader.Append("./resources/REMPART-LOWER/", "scene.gltf", this._scene, function (newScene) {
-                console.log('scene 2 loaded with ' + newScene.meshes.length + 'meshes');
+            //BABYLON.SceneLoader.Append("./resources/REMPART-LOWER/", "scene.gltf", this._scene, function (newScene) {
+                //console.log('scene 2 loaded with ' + newScene.meshes.length + 'meshes');
 
                 for (let i = 0; i < scene.meshes.length; i++) { 
                     let mesh = scene.meshes[i];
@@ -133,7 +151,7 @@ class Game {
                 }
 
                 vrHelper.enableTeleportation({floorMeshes: scene.meshes});
-            });
+            //});
         });
     }
   

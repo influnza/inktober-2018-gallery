@@ -11,7 +11,8 @@ class ArtData {
 }
 
 class Art { 
-    static TriggerDistance = 15;
+    static IsPlayerNearArt = false;
+    static TriggerDistance = 10;
     static TypeEnum = new Array<string>(
         'poisonous',
         'tranquil',
@@ -34,6 +35,11 @@ class Art {
         this._position = position;
         this._imagePath = 'resources/image/' + type + '-inktober-2018.jpg';
         this._audioPath = 'resources/audio/' + type + '.mp3';
+    }
+
+    createAt(scene: BABYLON.Scene, position: BABYLON.Vector3): void {
+        this._position = position;
+        this.create(scene);
     }
 
     create(scene: BABYLON.Scene): void {
@@ -94,6 +100,8 @@ class Art {
     }
 
     pause(): void {
+        Art.IsPlayerNearArt = false;
+
         if (!this._sound.isPaused) {
             this._sound.pause();
         }
@@ -104,6 +112,8 @@ class Art {
     }
 
     enter(): void {
+        Art.IsPlayerNearArt = true;
+
         if (this._sound.isReady && !this._sound.isPlaying) {
             this._sound.play();
         }
