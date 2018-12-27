@@ -1,3 +1,15 @@
+class ArtData {
+    Number: number;
+    ArtType: string;
+    SongTitle: string;
+
+    constructor(num: number, type: string, title: string) {
+        this.Number = num;
+        this.ArtType = type;
+        this.SongTitle = title;
+    }
+}
+
 class Art { 
     static TriggerDistance = 15;
     static TypeEnum = new Array<string>(
@@ -10,24 +22,27 @@ class Art {
         'exhausted',
         'star'
     );
-    private _type: string;
+    private _data: ArtData;
+    private _position: BABYLON.Vector3;
     private _audioPath: string;
     private _imagePath: string;
     private _sound: BABYLON.Sound;
     private _particles: BABYLON.ParticleSystem;
 
-    constructor(type: string) {
-        this._type = type;
+    constructor(number: any, type: string, title: string, position: BABYLON.Vector3) {
+        this._data = new ArtData(number, type, title);
+        this._position = position;
         this._imagePath = 'resources/image/' + type + '-inktober-2018.jpg';
         this._audioPath = 'resources/audio/' + type + '.mp3';
     }
 
-    createAt(scene: BABYLON.Scene, position: BABYLON.Vector3): void {
+    create(scene: BABYLON.Scene): void {
         let plane = BABYLON.MeshBuilder.CreatePlane('plane',
                                     {width: 3, height: 3}, scene);
-        plane.position = position;
+        plane.position = this._position;
         
         var mat = new BABYLON.StandardMaterial(this._imagePath, scene);
+        mat.backFaceCulling = false;
         mat.diffuseTexture = new BABYLON.Texture(this._imagePath, scene);
         plane.material = mat;
 
@@ -50,23 +65,19 @@ class Art {
 
         this._particles = new BABYLON.ParticleSystem(this._imagePath, 2000, scene);
         this._particles.targetStopDuration = 5;
-        let particlePath = 'resources/particle/' + this._type + '-particle.png';
+        let particlePath = 'resources/particle/' + this._data.ArtType + '-particle.png';
         this._particles.particleTexture = new BABYLON.Texture(particlePath, scene);
-        let emitterCenter = position.add(new BABYLON.Vector3(0, 5, 2));
+        let emitterCenter = this._position.add(new BABYLON.Vector3(0, 5, 2));
         this._particles.emitter = emitterCenter;
-        //this._particles.color1 = new BABYLON.Color4(0.7, 0.8, 1.0, 1.0);
-        //this._particles.color2 = new BABYLON.Color4(0.2, 0.5, 1.0, 1.0);
-        //this._particles.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
-        //this._particles.gravity = new BABYLON.Vector3(0, -9.81, 0);
         let emitterBox = new BABYLON.BoxParticleEmitter();
-        emitterBox.minEmitBox = new BABYLON.Vector3(-3, 0, 0);
-        emitterBox.maxEmitBox = new BABYLON.Vector3(3, 0, 2);
+        emitterBox.minEmitBox = new BABYLON.Vector3(-1.5, 0, 0);
+        emitterBox.maxEmitBox = new BABYLON.Vector3(1.5, 0, 2);
         emitterBox.direction1 = new BABYLON.Vector3(2, -4, 0);
         emitterBox.direction2 = new BABYLON.Vector3(-2, -4, 0);
         this._particles.particleEmitterType = emitterBox;
         this._particles.minSize = 0.1;
         this._particles.maxSize = 1;
-        this._particles.emitRate = 100;
+        this._particles.emitRate = 70;
         this._particles.minAngularSpeed = -0.4;
         this._particles.maxAngularSpeed = 0.4;
         this._particles.minLifeTime = 0.5;
@@ -87,9 +98,9 @@ class Art {
             this._sound.pause();
         }
 
-        if (this._particles.isAlive) {
-            this._particles.stop();
-        }
+        if (this._particles.isReady) {
+            this._particles.start();
+        }        
     }
 
     enter(): void {
@@ -97,8 +108,8 @@ class Art {
             this._sound.play();
         }
 
-        if (this._particles.isReady) {
-            this._particles.start();
+        if (this._particles.isAlive) {
+            this._particles.stop();
         }
     }
 }
