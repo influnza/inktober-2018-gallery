@@ -10,6 +10,55 @@ class ArtData {
     }
 }
 
+class ArtManager
+{
+    private _artList: Array<Art>;
+    private _scene: BABYLON.Scene;
+    private _vrHelper: BABYLON.VRExperienceHelper;
+
+    constructor(scene: BABYLON.Scene, vrHelper: BABYLON.VRExperienceHelper) {
+        this._scene = scene;
+        this._vrHelper = vrHelper;
+        this._artList = new Array<Art>(
+            new Art(21, 'drain', 'Drain', new BABYLON.Vector3(15, 1, -10)),
+            new Art(20, 'breakable', 'Breakable', new BABYLON.Vector3(5, 1, 10)),
+            new Art(19, 'scorched', 'Scorched', new BABYLON.Vector3(5, 1, 10)),
+            new Art(18, 'bottle', 'Bottle', new BABYLON.Vector3(5, 1, 10)),
+            new Art(17, 'swollen', 'Swollen', new BABYLON.Vector3(5, 1, 10)),
+            new Art(8, 'star', 'Twinkle', new BABYLON.Vector3(15, 1, -10)),
+            new Art(5, 'chicken', 'Chicken', new BABYLON.Vector3(-15, 1, -10)),
+            new Art(4, 'spell', 'Ambient', new BABYLON.Vector3(5, 1, 10)),
+            //new Art(3, 'roasted', '', new BABYLON.Vector3(5, 1, 10)),
+            //new Art(2, 'tranquil', '', new BABYLON.Vector3(5, 1, 10)),
+            //new Art(1, 'poisonous', '', new BABYLON.Vector3(5, 1, 10)),
+        );
+
+        /*artList.forEach(element => {
+            element.create(this._scene);        
+        });*/
+    }
+
+    placeNextArtAt(p: BABYLON.Vector3) : void {
+        let art = this._artList.pop();
+        if (art) {
+            p.y += 2;
+            console.log("put art at location: " + p.x + " " + p.y + " " + p.z);
+            art.createAt(this._scene, p);
+
+            let camera = this._vrHelper.currentVRCamera;
+            this._scene.registerAfterRender(function (): void {
+                if (art.isPlayerNear(camera.position)) {
+                    art.enter();
+                } else {
+                    art.pause();
+                }
+            });
+        } else {
+            console.log('out of art');
+        }
+    }
+}
+
 class Art { 
     static IsPlayerNearArt = false;
     static TriggerDistance = 10;
@@ -31,10 +80,46 @@ class Art {
     private _particles: BABYLON.ParticleSystem;
 
     private makeOverOut = function (mesh) {
-        mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, mesh.material, "emissiveColor", mesh.material.emissiveColor));
-        mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOverTrigger, mesh.material, "emissiveColor", BABYLON.Color3.White()));
+
+        let type = mesh.name;
+        let _isDragged: boolean;
+
+        var pointerDownCallback = function (evt) : any {
+            currentPosition.x = evt.clientX;
+            currentPosition.y = evt.clientY;
+            currentRotation.x = mesh.rotation.x;
+            currentRotation.y = mesh.rotation.y;
+            _isDragged = true;
+            return;
+        };
+        var pointerUpCallback = function (evt) : any {
+            _isDragged = false;
+        }
+        var pointerMoveCallback = function (evt) : any {
+            if (!_isDragged) {
+                return;
+            }
+            mesh.rotation.y = currentRotation.y - (evt.clientX - currentPosition.x) / 100.0;
+            mesh.rotation.x = currentRotation.x + (evt.clientY - currentPosition.y) / 100.0;
+        }
+
+        mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, mesh.material, "emissiveColor", mesh.material.emissiveColor))
+        mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, () => {
+                window.addEventListener("pointerdown", pointerDownCallback);
+                window.addEventListener("pointerup", pointerUpCallback);
+                window.addEventListener("pointermove", pointerMoveCallback);
+            }));
+        mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOverTrigger, mesh.material, "emissiveColor", BABYLON.Color3.White()))
+        mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, () => {
+                window.removeEventListener("pointerdown", pointerDownCallback);
+                window.removeEventListener("pointerup", pointerUpCallback);
+                window.removeEventListener("pointermove", pointerMoveCallback);
+            }));
         mesh.actionManager.registerAction(new BABYLON.InterpolateValueAction(BABYLON.ActionManager.OnPointerOutTrigger, mesh, "scaling", new BABYLON.Vector3(1, 1, 1), 150));
         mesh.actionManager.registerAction(new BABYLON.InterpolateValueAction(BABYLON.ActionManager.OnPointerOverTrigger, mesh, "scaling", new BABYLON.Vector3(1.1, 1.1, 1.1), 150));
+        
+        var currentPosition = { x: 0, y: 0 };
+        var currentRotation = { x: 0, y: 0 };
     }
 
     constructor(number: any, type: string, title: string, position: BABYLON.Vector3) {
@@ -44,6 +129,10 @@ class Art {
         if (title.length > 0) {
             this._audioPath = 'resources/audio/' + type + '.mp3';
         }
+    }
+
+    isPlayerNear(cameraPos: BABYLON.Vector3): boolean {
+        return BABYLON.Vector3.Distance(cameraPos, this._position) < Art.TriggerDistance;
     }
 
     createAt(scene: BABYLON.Scene, position: BABYLON.Vector3): void {
@@ -86,15 +175,6 @@ class Art {
         }
 
         //this.addParticles(scene);
-
-        let art = this;
-        scene.registerAfterRender(function (): void {
-            if (BABYLON.Vector3.Distance(scene.cameras[0].position, plane.position) < Art.TriggerDistance) {
-                art.enter();
-            } else {
-                art.pause();
-            }
-        });
     }
 
     addParticles(scene: BABYLON.Scene) : void {

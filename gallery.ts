@@ -8,7 +8,7 @@ class Game {
     private _camera: BABYLON.FreeCamera;
     private _light: BABYLON.Light;
     private _VRHelper: BABYLON.VRExperienceHelper;
-    private _artList: Array<Art>;
+    private _artManager: ArtManager;
     //private _actionMap: Array;
 
     constructor(canvasElementId : string) {
@@ -17,24 +17,9 @@ class Game {
         this._engine = new BABYLON.Engine(this._canvas, true);
     }
   
+        
     setupArt(): void {
-        this._artList = new Array<Art>(
-            new Art(21, 'drain', 'Drain', new BABYLON.Vector3(15, 1, -10)),
-            new Art(20, 'breakable', 'Breakable', new BABYLON.Vector3(5, 1, 10)),
-            new Art(19, 'scorched', 'Scorched', new BABYLON.Vector3(5, 1, 10)),
-            new Art(18, 'bottle', 'Bottle', new BABYLON.Vector3(5, 1, 10)),
-            new Art(17, 'swollen', 'Swollen', new BABYLON.Vector3(5, 1, 10)),
-            new Art(8, 'star', 'Twinkle', new BABYLON.Vector3(15, 1, -10)),
-            new Art(5, 'chicken', 'Chicken', new BABYLON.Vector3(-15, 1, -10)),
-            new Art(4, 'spell', 'Ambient', new BABYLON.Vector3(5, 1, 10)),
-            //new Art(3, 'roasted', '', new BABYLON.Vector3(5, 1, 10)),
-            //new Art(2, 'tranquil', '', new BABYLON.Vector3(5, 1, 10)),
-            //new Art(1, 'poisonous', '', new BABYLON.Vector3(5, 1, 10)),
-        );
-
-        /*artList.forEach(element => {
-            element.create(this._scene);        
-        });*/
+        this._artManager = new ArtManager(this._scene, this._VRHelper);
     }
 
     setupSkybox() {
@@ -49,13 +34,8 @@ class Game {
     }
 
     placeArtAt(p: BABYLON.Vector3) : void {
-        let art = this._artList.pop();
-        if (art) {
-            p.y += 2;
-            console.log("put art at location: " + p.x + " " + p.y + " " + p.z);
-            art.createAt(this._scene, p);
-        } else {
-            console.log('out of art');
+        if (this._artManager) {
+            this._artManager.placeNextArtAt(p);
         }
     }
 
@@ -101,6 +81,7 @@ class Game {
         // Create a basic BJS Scene object.
         this._scene = new BABYLON.Scene(this._engine);
         this.setupVR();
+        this.setupArt();
 
         this.setupActions();
 
@@ -121,18 +102,7 @@ class Game {
         titleMaterial.emissiveTexture = titleMaterial.diffuseTexture;
         plane.material = titleMaterial;
 
-        // Create a built-in "ground" shape.
-        /*let floorName = 'ground';
-        let ground = BABYLON.MeshBuilder.CreateGround(floorName,
-                                {width: 60, height: 60, subdivisions: 2}, this._scene);
-        this._VRHelper.enableTeleportation({floorMeshName: floorName});*/
-
-        //This will start casting a ray from either the user's camera or controllers. 
-        //Where this ray intersects a mesh in the scene, a small gaze mesh will be placed to indicate to the user what is currently selected.
-
-        this.setupArt();
-
-        // var glowLayer = new BABYLON.GlowLayer("glow", this._scene, {
+        // let glowLayer = new BABYLON.GlowLayer("glow", this._scene, {
         //     mainTextureFixedSize: 256,
         //     blurKernelSize: 32
         // });
@@ -142,33 +112,23 @@ class Game {
         var vrHelper = this._VRHelper;
         var scene = this._scene;
         BABYLON.SceneLoader.Append("./resources/environment/", "rempart.glb", this._scene, function (newScene) {
-            console.log('scene 1 loaded with ' + newScene.meshes.length + 'meshes');
-            // for (let i = 0; i < newScene.meshes.length; i++) { 
-            //     let mesh = newScene.meshes[i];
-            // }
+            for (let i = 0; i < scene.meshes.length; i++) { 
+                let mesh = scene.meshes[i];
+                //console.log ('n: ' + mesh.name + ', id:' + mesh.id + ', v:'  + mesh.getTotalVertices());
+                mesh.cullingStrategy = BABYLON.AbstractMesh.CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY;  
+                if (mesh.name.indexOf('node') >= 0) {
+                    mesh.scaling.multiply(new BABYLON.Vector3(2, 2, 2));
+                
+                    /*if (mesh.name.indexOf('node6') >= 0) {
+                        console.log('adjusting node6');
+                        mesh.scaling = mesh.scaling.multiply(new BABYLON.Vector3(2, 2, 2));
 
-            //BABYLON.SceneLoader.Append("./resources/REMPART-LOWER/", "scene.gltf", this._scene, function (newScene) {
-                //console.log('scene 2 loaded with ' + newScene.meshes.length + 'meshes');
-
-                for (let i = 0; i < scene.meshes.length; i++) { 
-                    let mesh = scene.meshes[i];
-                    //this._VRHelper.enableTeleportation({floorMeshName: newScene.meshes[i].name});
-                    console.log ('n: ' + mesh.name + ', id:' + mesh.id + ', v:'  + mesh.getTotalVertices());
-                    mesh.cullingStrategy = BABYLON.AbstractMesh.CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY;  
-                    if (mesh.name.indexOf('node') >= 0) {
-                        mesh.scaling.multiply(new BABYLON.Vector3(2, 2, 2));
-                    
-                        /*if (mesh.name.indexOf('node6') >= 0) {
-                            console.log('adjusting node6');
-                            mesh.scaling = mesh.scaling.multiply(new BABYLON.Vector3(2, 2, 2));
-
-                            //n6.rotate(new BABYLON.Vector3(0, -1, 0), Math.PI);
-                        }*/
-                    }
+                        //n6.rotate(new BABYLON.Vector3(0, -1, 0), Math.PI);
+                    }*/
                 }
+            }
 
-                vrHelper.enableTeleportation({floorMeshes: scene.meshes});
-            //});
+            vrHelper.enableTeleportation({floorMeshes: scene.meshes});
         });
     }
   
@@ -217,7 +177,7 @@ class Game {
     // Create the scene.
     game.createScene();
   
-    window.addEventListener("click", function() {
+    window.addEventListener("dblclick", function() {
         game.clickf();
     });
 
