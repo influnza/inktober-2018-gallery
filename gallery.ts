@@ -9,6 +9,7 @@ class Game {
     private _light: BABYLON.Light;
     private _VRHelper: BABYLON.VRExperienceHelper;
     private _artList: Array<Art>;
+    //private _actionMap: Array;
 
     constructor(canvasElementId : string) {
         // Create canvas and engine.
@@ -19,9 +20,16 @@ class Game {
     setupArt(): void {
         this._artList = new Array<Art>(
             new Art(21, 'drain', 'Drain', new BABYLON.Vector3(15, 1, -10)),
+            new Art(20, 'breakable', 'Breakable', new BABYLON.Vector3(5, 1, 10)),
+            new Art(19, 'scorched', 'Scorched', new BABYLON.Vector3(5, 1, 10)),
+            new Art(18, 'bottle', 'Bottle', new BABYLON.Vector3(5, 1, 10)),
+            new Art(17, 'swollen', 'Swollen', new BABYLON.Vector3(5, 1, 10)),
             new Art(8, 'star', 'Twinkle', new BABYLON.Vector3(15, 1, -10)),
             new Art(5, 'chicken', 'Chicken', new BABYLON.Vector3(-15, 1, -10)),
             new Art(4, 'spell', 'Ambient', new BABYLON.Vector3(5, 1, 10)),
+            //new Art(3, 'roasted', '', new BABYLON.Vector3(5, 1, 10)),
+            //new Art(2, 'tranquil', '', new BABYLON.Vector3(5, 1, 10)),
+            //new Art(1, 'poisonous', '', new BABYLON.Vector3(5, 1, 10)),
         );
 
         /*artList.forEach(element => {
@@ -31,38 +39,34 @@ class Game {
 
     setupSkybox() {
         var scene = this._scene;
-        //var skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size:1000.0}, scene);
         var skybox = BABYLON.MeshBuilder.CreateSphere("skyBox", {diameter:5000.0}, scene);
         skybox.rotate(new BABYLON.Vector3(1,0,0), Math.PI);
         var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
         skyboxMaterial.backFaceCulling = false;
-        //skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("textures/skybox", scene);
-        //skyboxMaterial.reflectionTexture = new BABYLON.HDRCubeTexture("resources/environment/textures/sky.hdr", scene, 128);
         skyboxMaterial.diffuseTexture = new BABYLON.Texture("resources/environment/textures/sky.jpg", scene);
-        //skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SPHERICAL_MODE;
-        //skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
-        //skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
         skybox.material = skyboxMaterial;
 
     }
 
-    rayCast(ray: BABYLON.Ray) {
+    placeArtAt(p: BABYLON.Vector3) : void {
+        let art = this._artList.pop();
+        if (art) {
+            p.y += 2;
+            console.log("put art at location: " + p.x + " " + p.y + " " + p.z);
+            art.createAt(this._scene, p);
+        } else {
+            console.log('out of art');
+        }
+    }
+
+    rayCastAndPlaceArt(ray: BABYLON.Ray) {
         console.log('raycasting: ' + ray);
-        //BABYLON.RayHelper.CreateAndShow(ray, this._scene, BABYLON.Color3.Red());
 
         let pickResult = this._scene.pickWithRay(ray);
         if (pickResult.hit == true) {
-            console.log("ray intersects with mesh");
-            console.log("ray hit: " + pickResult.hit);
             let p = pickResult.pickedPoint;
-            console.log("picked point: " + p.x + " " + p.y + " " + p.z);
 
-            if (!Art.IsPlayerNearArt) {
-                let art = this._artList.pop();
-                if (art) {
-                    art.createAt(this._scene, p);
-                }
-            }
+            this.placeArtAt(p);            
         }
     }
 
@@ -75,17 +79,30 @@ class Game {
                 if (state.value == 1) {
                     // Trigger pressed event
                     let ray = webVRController.getForwardRay(20);
-                    game.rayCast(ray);
+                    game.rayCastAndPlaceArt(ray);
                 }
             });
         });
         this._VRHelper.enableInteractions();
     }
 
+    setupActions() : void {        
+        window.addEventListener('keypress', (event) => {
+            const keyName = event.key;
+            alert('keypress event\n\n' + 'key: ' + keyName);
+            if (keyName == " ") {
+                let p = this._VRHelper.currentVRCamera.position;
+                console.log("current position: " + p.x + " " + p.y + " " + p.z);
+            }
+        });
+    }
+
     createScene() : void {
         // Create a basic BJS Scene object.
         this._scene = new BABYLON.Scene(this._engine);
         this.setupVR();
+
+        this.setupActions();
 
         // Create a basic light, aiming 0,1,0 - meaning, to the sky.
         this._light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0,1,0), this._scene);
@@ -120,8 +137,8 @@ class Game {
         //     blurKernelSize: 32
         // });
 
-        this.setupSkybox();
-        
+        this.setupSkybox();        
+
         var vrHelper = this._VRHelper;
         var scene = this._scene;
         BABYLON.SceneLoader.Append("./resources/environment/", "rempart.glb", this._scene, function (newScene) {
@@ -166,6 +183,31 @@ class Game {
             this._engine.resize();
         });
     }
+
+    clickf(): void {
+
+
+        let pickResult = this._scene.pick(this._scene.pointerX, this._scene.pointerY);
+        let pickResultPosClicked = new BABYLON.Vector3(0,0,100);
+    
+        if (pickResult.hit) {
+                pickResultPosClicked.x = pickResult.pickedPoint.x;
+                pickResultPosClicked.y = pickResult.pickedPoint.y;
+                pickResultPosClicked.z = pickResult.pickedPoint.z;
+                console.log('click! ' + pickResultPosClicked.x + ', ' + pickResultPosClicked.y + ', ' + pickResultPosClicked.z);
+                
+                this.placeArtAt(pickResultPosClicked);
+                /*var diffX = pickResultPosClicked.x - man.position.x;
+                var diffZ = pickResultPosClicked.z - man.position.z;
+                diffAngle = Math.atan2(-diffX,-diffZ);
+                man.rotation.y = diffAngle;
+            
+                manState = 'moving';*/
+            
+    
+        }// if result
+        
+    }//clickf()
   }
   
   window.addEventListener('DOMContentLoaded', () => {
@@ -175,6 +217,12 @@ class Game {
     // Create the scene.
     game.createScene();
   
+    window.addEventListener("click", function() {
+        game.clickf();
+    });
+
     // Start render loop.
     game.doRender();
   });
+  
+  
