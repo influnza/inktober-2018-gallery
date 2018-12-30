@@ -69,7 +69,7 @@ class Game {
     setupActions() : void {        
         window.addEventListener('keypress', (event) => {
             const keyName = event.key;
-            alert('keypress event\n\n' + 'key: ' + keyName);
+            //alert('keypress event\n\n' + 'key: ' + keyName);
             if (keyName == " ") {
                 let p = this._VRHelper.currentVRCamera.position;
                 console.log("current position: " + p.x + " " + p.y + " " + p.z);
@@ -109,29 +109,61 @@ class Game {
 
         this.setupSkybox();        
 
-        var vrHelper = this._VRHelper;
-        var scene = this._scene;
-        BABYLON.SceneLoader.Append("./resources/environment/", "rempart.glb", this._scene, function (newScene) {
-            for (let i = 0; i < scene.meshes.length; i++) { 
-                let mesh = scene.meshes[i];
-                //console.log ('n: ' + mesh.name + ', id:' + mesh.id + ', v:'  + mesh.getTotalVertices());
-                mesh.cullingStrategy = BABYLON.AbstractMesh.CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY;  
-                if (mesh.name.indexOf('node') >= 0) {
-                    mesh.scaling.multiply(new BABYLON.Vector3(2, 2, 2));
-                
-                    /*if (mesh.name.indexOf('node6') >= 0) {
-                        console.log('adjusting node6');
-                        mesh.scaling = mesh.scaling.multiply(new BABYLON.Vector3(2, 2, 2));
+        this.setupGravity();
 
-                        //n6.rotate(new BABYLON.Vector3(0, -1, 0), Math.PI);
-                    }*/
-                }
+        let game = this;
+        BABYLON.SceneLoader.Append("./resources/environment/", "rempart.glb", this._scene, function (scene) {
+            for (var m in scene.meshes) {
+                console.log(scene.meshes[m].name);
+            }
+            let castle = scene.meshes.filter(mesh => (mesh.name.indexOf('__root__') >= 0) 
+                || (mesh.name.indexOf('node') >= 0) 
+                || (mesh.name.indexOf('Object') >= 0)).map(x => x as BABYLON.Mesh);
+            for (var m in castle) {
+                castle[m].position = castle[m].position.add(new BABYLON.Vector3(0, 3, 0));
             }
 
-            vrHelper.enableTeleportation({floorMeshes: scene.meshes});
+            game.setupCollisionsFloor(castle);
         });
+
     }
   
+    setupGravity(): void {
+        //Set gravity for the scene (G force like, on Y-axis)
+        this._scene.gravity = new BABYLON.Vector3(0, -0.9, 0);
+
+        // Enable Collisions
+        this._scene.collisionsEnabled = true;
+
+        //Then apply collisions and gravity to the active camera
+        let camera = this._VRHelper.currentVRCamera as BABYLON.FreeCamera;
+        if (camera) {
+            console.log('check cam collisions true');
+            camera.checkCollisions = true;
+            camera.applyGravity = true;
+            camera.speed *= 0.7;
+
+            //Set the ellipsoid around the camera (e.g. your player's size)
+            camera.ellipsoid = new BABYLON.Vector3(0.3, 0.9, 0.3);
+        }
+    }
+
+   setupCollisionsFloor(meshes: BABYLON.Mesh[]): void {
+        this._VRHelper.enableTeleportation({floorMeshes: meshes});
+        
+        let camera = this._VRHelper.currentVRCamera as BABYLON.FreeCamera;
+        if (camera) {
+            camera._needMoveForGravity = true;
+        }
+
+        //finally, say which mesh will be collisionable
+        for (let m in meshes) { 
+            let mesh = meshes[m];
+            mesh.checkCollisions = true;
+            console.log('check '+ mesh.name+' collisions true');
+        }
+    }
+
     doRender() : void {
         // Run the render loop.
         this._engine.runRenderLoop(() => {

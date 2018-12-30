@@ -20,6 +20,10 @@ class ArtManager
         this._scene = scene;
         this._vrHelper = vrHelper;
         this._artList = new Array<Art>(
+            new Art(29, 'double', 'Double', new BABYLON.Vector3(15, 1, -10)),
+            new Art(25, 'prickly', 'Needless to say', new BABYLON.Vector3(15, 1, -10)),
+            new Art(24, 'chop', 'Chop', new BABYLON.Vector3(15, 1, -10)),
+            //new Art(22, 'expensive', '', new BABYLON.Vector3(15, 1, -10)),
             new Art(21, 'drain', 'Drain', new BABYLON.Vector3(15, 1, -10)),
             new Art(20, 'breakable', 'Breakable', new BABYLON.Vector3(5, 1, 10)),
             new Art(19, 'scorched', 'Scorched', new BABYLON.Vector3(5, 1, 10)),
@@ -144,6 +148,7 @@ class Art {
         let plane = BABYLON.MeshBuilder.CreatePlane(this._data.ArtType,
                                     {width: 3, height: 3}, scene);
         plane.position = this._position;
+        plane.checkCollisions = true;
         plane.actionManager = new BABYLON.ActionManager(scene);
         /*plane.actionManager.registerAction(
             new BABYLON.IncrementValueAction()
@@ -154,6 +159,7 @@ class Art {
         mat.diffuseTexture = new BABYLON.Texture(this._imagePath, scene);
         plane.material = mat;
         this.makeOverOut(plane); // setup after material is set
+        //window.addEventListener('keypress')
 
         if (this._audioPath && this._audioPath.length > 0) {
             this._sound = new BABYLON.Sound(this._audioPath, this._audioPath, scene, null, {
