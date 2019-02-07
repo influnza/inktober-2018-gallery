@@ -1,5 +1,6 @@
 ///<reference path="babylon.d.ts" />
 ///<reference path="art.ts" />
+///<reference path="player.ts" />
 
 class Game {
     private _canvas: HTMLCanvasElement;
@@ -9,6 +10,7 @@ class Game {
     private _light: BABYLON.Light;
     private _VRHelper: BABYLON.VRExperienceHelper;
     private _artManager: ArtManager;
+    private _player: Player;
     //private _actionMap: Array;
 
     constructor(canvasElementId : string) {
@@ -63,16 +65,21 @@ class Game {
                 }
             });
         });
-        this._VRHelper.enableInteractions();
+        this._VRHelper.onEnteringVR.add(this.setupGravity);
+        this._VRHelper.onExitingVR.add(this.disableGravity);
     }
 
     setupActions() : void {        
         window.addEventListener('keypress', (event) => {
             const keyName = event.key;
-            //alert('keypress event\n\n' + 'key: ' + keyName);
             if (keyName == " ") {
-                let p = this._VRHelper.currentVRCamera.position;
+                //let p = this._VRHelper.currentVRCamera.globalPosition;
+                let p = this._scene.activeCamera.globalPosition;
                 console.log("current position: " + p.x + " " + p.y + " " + p.z);
+            } else if (keyName == "t") {
+                let p = this._scene.activeCamera.globalPosition;
+                console.log("tp up");
+                this._VRHelper.teleportCamera(p.add(new BABYLON.Vector3(0, 1, 0)));
             }
         });
     }
@@ -81,6 +88,7 @@ class Game {
         // Create a basic BJS Scene object.
         this._scene = new BABYLON.Scene(this._engine);
         this.setupVR();
+        this._player = new Player(this._scene, this._VRHelper);
         this.setupArt();
 
         this.setupActions();
@@ -108,8 +116,6 @@ class Game {
         // });
 
         this.setupSkybox();        
-
-        this.setupGravity();
 
         let game = this;
         BABYLON.SceneLoader.Append("./resources/environment/", "rempart.glb", this._scene, function (scene) {
@@ -148,19 +154,33 @@ class Game {
         }
     }
 
-   setupCollisionsFloor(meshes: BABYLON.Mesh[]): void {
-        this._VRHelper.enableTeleportation({floorMeshes: meshes});
-        
+    disableGravity(): void {
+        // Disable Collisions
+        this._scene.collisionsEnabled = false;
+
+        //Then disable collisions and gravity on the active camera
         let camera = this._VRHelper.currentVRCamera as BABYLON.FreeCamera;
         if (camera) {
-            camera._needMoveForGravity = true;
+            console.log('check cam collisions false');
+            camera.checkCollisions = false;
+            camera.applyGravity = false;
         }
+    }
+
+   setupCollisionsFloor(meshes: BABYLON.Mesh[]): void {
+        this._VRHelper.enableTeleportation({floorMeshes: meshes});
+        this._VRHelper.teleportCamera(new BABYLON.Vector3(-0.4956669157896867, -9.069995640651607, 9.0883011935554));
+        //let camera = this._VRHelper.currentVRCamera as BABYLON.FreeCamera;
+
+        /*if (camera) {
+            camera._needMoveForGravity = true;
+        }*/
 
         //finally, say which mesh will be collisionable
         for (let m in meshes) { 
             let mesh = meshes[m];
             mesh.checkCollisions = true;
-            console.log('check '+ mesh.name+' collisions true');
+            console.log('check '+ mesh.name +' collisions true');
         }
     }
 

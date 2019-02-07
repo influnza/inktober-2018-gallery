@@ -1,15 +1,3 @@
-class ArtData {
-    Number: number;
-    ArtType: string;
-    SongTitle: string;
-
-    constructor(num: number, type: string, title: string) {
-        this.Number = num;
-        this.ArtType = type;
-        this.SongTitle = title;
-    }
-}
-
 class ArtManager
 {
     private _artList: Array<Art>;
@@ -49,17 +37,30 @@ class ArtManager
             console.log("put art at location: " + p.x + " " + p.y + " " + p.z);
             art.createAt(this._scene, p);
 
-            let camera = this._vrHelper.currentVRCamera;
+            let vrHelper = this._vrHelper;
             this._scene.registerAfterRender(function (): void {
-                if (art.isPlayerNear(camera.position)) {
+                if (art.isPlayerNear(vrHelper.currentVRCamera.position)) {
                     art.enter();
                 } else {
                     art.pause();
                 }
             });
+
         } else {
             console.log('out of art');
         }
+    }
+}
+
+class ArtData {
+    Number: number;
+    ArtType: string;
+    SongTitle: string;
+
+    constructor(num: number, type: string, title: string) {
+        this.Number = num;
+        this.ArtType = type;
+        this.SongTitle = title;
     }
 }
 
@@ -83,7 +84,7 @@ class Art {
     private _sound: BABYLON.Sound;
     private _particles: BABYLON.ParticleSystem;
 
-    private makeOverOut = function (mesh) {
+    private makeOverOut = function (mesh: BABYLON.Mesh) {
 
         let type = mesh.name;
         let _isDragged: boolean;
@@ -109,16 +110,20 @@ class Art {
 
         mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, mesh.material, "emissiveColor", mesh.material.emissiveColor))
         mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, () => {
-                window.addEventListener("pointerdown", pointerDownCallback);
-                window.addEventListener("pointerup", pointerUpCallback);
-                window.addEventListener("pointermove", pointerMoveCallback);
+                //window.addEventListener("pointerdown", pointerDownCallback);
+                mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, pointerDownCallback));
+                //window.addEventListener("pointerup", pointerUpCallback);
+                mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickUpTrigger, pointerUpCallback));
+                //window.addEventListener("pointermove", pointerMoveCallback);
+                mesh._scene.onPointerObservable.add(pointerMoveCallback);
             }));
         mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOverTrigger, mesh.material, "emissiveColor", BABYLON.Color3.White()))
-        mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, () => {
-                window.removeEventListener("pointerdown", pointerDownCallback);
+        /*mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, () => {
+            mesh.actionManager.remove window.removeEventListener("pointerdown", pointerDownCallback);
                 window.removeEventListener("pointerup", pointerUpCallback);
-                window.removeEventListener("pointermove", pointerMoveCallback);
-            }));
+                //window.removeEventListener("pointermove", pointerMoveCallback);
+                mesh._scene.onPointerObservable.removeCallback(pointerMoveCallback);
+            }));*/
         mesh.actionManager.registerAction(new BABYLON.InterpolateValueAction(BABYLON.ActionManager.OnPointerOutTrigger, mesh, "scaling", new BABYLON.Vector3(1, 1, 1), 150));
         mesh.actionManager.registerAction(new BABYLON.InterpolateValueAction(BABYLON.ActionManager.OnPointerOverTrigger, mesh, "scaling", new BABYLON.Vector3(1.1, 1.1, 1.1), 150));
         
@@ -150,16 +155,12 @@ class Art {
         plane.position = this._position;
         plane.checkCollisions = true;
         plane.actionManager = new BABYLON.ActionManager(scene);
-        /*plane.actionManager.registerAction(
-            new BABYLON.IncrementValueAction()
-        );*/
         
         var mat = new BABYLON.StandardMaterial(this._imagePath, scene);
         mat.backFaceCulling = false;
         mat.diffuseTexture = new BABYLON.Texture(this._imagePath, scene);
         plane.material = mat;
         this.makeOverOut(plane); // setup after material is set
-        //window.addEventListener('keypress')
 
         if (this._audioPath && this._audioPath.length > 0) {
             this._sound = new BABYLON.Sound(this._audioPath, this._audioPath, scene, null, {
