@@ -65,8 +65,13 @@ class Game {
                 }
             });
         });
-        this._VRHelper.onEnteringVR.add(this.setupGravity);
-        this._VRHelper.onExitingVR.add(this.disableGravity);
+        this._VRHelper.onEnteringVRObservable.add(() => {
+            this.setupGravity();
+        });
+        this._VRHelper.onExitingVRObservable.add(() =>{
+            this.disableGravity();
+        });
+        this._VRHelper.enableTeleportation();
     }
 
     setupActions() : void {        
@@ -118,7 +123,8 @@ class Game {
         this.setupSkybox();        
 
         let game = this;
-        BABYLON.SceneLoader.Append("./resources/environment/", "rempart.glb", this._scene, function (scene) {
+        BABYLON.SceneLoader.Append("./resources/environment/", "scene.gltf", this._scene, function (scene) {
+        //BABYLON.SceneLoader.Append("./resources/environment/", "rempart.glb", this._scene, function (scene) {
             for (var m in scene.meshes) {
                 console.log(scene.meshes[m].name);
             }
@@ -168,7 +174,6 @@ class Game {
     }
 
    setupCollisionsFloor(meshes: BABYLON.Mesh[]): void {
-        this._VRHelper.enableTeleportation({floorMeshes: meshes});
         this._VRHelper.teleportCamera(new BABYLON.Vector3(-0.4956669157896867, -9.069995640651607, 9.0883011935554));
         //let camera = this._VRHelper.currentVRCamera as BABYLON.FreeCamera;
 
@@ -179,6 +184,7 @@ class Game {
         //finally, say which mesh will be collisionable
         for (let m in meshes) { 
             let mesh = meshes[m];
+            this._VRHelper.addFloorMesh(meshes[m]);
             mesh.checkCollisions = true;
             console.log('check '+ mesh.name +' collisions true');
         }
