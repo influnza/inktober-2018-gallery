@@ -5,7 +5,7 @@ var Player = /** @class */ (function () {
         this._origin = new BABYLON.Vector3(0, 0, 0);
         var player = this;
         //TODO: report - doesn't work without VR it seems 
-        this._scene.registerAfterRender(function () {
+        /*this._scene.registerAfterRender(function (): void {
             if (this._scene && this._scene.activeCamera) {
                 player._position = this._scene.activeCamera.position;
                 console.log('update player position to ', player._position);
@@ -13,7 +13,7 @@ var Player = /** @class */ (function () {
                     this.resetLocation();
                 }
             }
-        });
+        });*/
     }
     Player.prototype.isFartherThan = function (target, threshold) {
         if (!this._position || !target)
@@ -26,9 +26,9 @@ var Player = /** @class */ (function () {
         this.teleportTo(this._origin);
     };
     Player.prototype.teleportTo = function (target) {
-        if (!(this._vrHelper.currentVRCamera instanceof BABYLON.FreeCamera)) {
-            console.log('not a free camera, wont teleport ');
-        }
+        // if (!(this._vrHelper.currentVRCamera instanceof BABYLON.FreeCamera)) {
+        //     console.log('not a free camera, wont teleport ');
+        // }
         if (this._vrHelper.teleportationEnabled) {
             console.log('move player to ' + target);
             this._vrHelper.teleportCamera(target);

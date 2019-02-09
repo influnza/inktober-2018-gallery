@@ -85,6 +85,8 @@ class Game {
                 let p = this._scene.activeCamera.globalPosition;
                 console.log("tp up");
                 this._VRHelper.teleportCamera(p.add(new BABYLON.Vector3(0, 1, 0)));
+            } else if (keyName == "s") {
+                this._player.resetLocation();
             }
         });
     }
@@ -94,6 +96,8 @@ class Game {
         this._scene = new BABYLON.Scene(this._engine);
         this.setupVR();
         this._player = new Player(this._scene, this._VRHelper);
+        let startPosition = new BABYLON.Vector3(-18, -9.149195517777458, 25);
+        this._player.placeAt(startPosition);
         this.setupArt();
 
         this.setupActions();
@@ -106,8 +110,7 @@ class Game {
                                     {width: 3, height: 3}, this._scene);
 
         // Move the sphere upward 1/2 of its height.
-        plane.position.y = 1.6;
-        plane.position.z = 5;
+        plane.position = startPosition.add(new BABYLON.Vector3(0, 1.5, 5));
 
         //"\resources\inktobertopics2018.jpg"
         var titleMaterial = new BABYLON.StandardMaterial('title', this._scene);
@@ -123,18 +126,20 @@ class Game {
         this.setupSkybox();        
 
         let game = this;
-        BABYLON.SceneLoader.Append("./resources/environment/", "scene.gltf", this._scene, function (scene) {
-        //BABYLON.SceneLoader.Append("./resources/environment/", "rempart.glb", this._scene, function (scene) {
+        //BABYLON.SceneLoader.Append("./resources/environment/", "scene.gltf", this._scene, function (scene) {
+        //let rootUrl = "./resources/environment/";
+        let rootUrl = "https://inktober2018.blob.core.windows.net/resources/environment/";
+        BABYLON.SceneLoader.Append(rootUrl, "rempart.glb", this._scene, function (scene) {
             for (var m in scene.meshes) {
+                let mesh = scene.meshes[m];
                 console.log(scene.meshes[m].name);
+                mesh.checkCollisions = true;
             }
             let castle = scene.meshes.filter(mesh => (mesh.name.indexOf('__root__') >= 0) 
                 || (mesh.name.indexOf('node') >= 0) 
-                || (mesh.name.indexOf('Object') >= 0)).map(x => x as BABYLON.Mesh);
-            for (var m in castle) {
-                castle[m].position = castle[m].position.add(new BABYLON.Vector3(0, 3, 0));
-            }
-
+                || (mesh.name.indexOf('Object') >= 0)
+                || (mesh.name.indexOf('Floor') >= 0)).map(x => x as BABYLON.Mesh);
+            
             game.setupCollisionsFloor(castle);
         });
 
@@ -174,19 +179,11 @@ class Game {
     }
 
    setupCollisionsFloor(meshes: BABYLON.Mesh[]): void {
-        this._VRHelper.teleportCamera(new BABYLON.Vector3(-0.4956669157896867, -9.069995640651607, 9.0883011935554));
-        //let camera = this._VRHelper.currentVRCamera as BABYLON.FreeCamera;
-
-        /*if (camera) {
-            camera._needMoveForGravity = true;
-        }*/
-
         //finally, say which mesh will be collisionable
         for (let m in meshes) { 
             let mesh = meshes[m];
             this._VRHelper.addFloorMesh(meshes[m]);
-            mesh.checkCollisions = true;
-            console.log('check '+ mesh.name +' collisions true');
+            console.log('add floor mesh '+ mesh.name);
         }
     }
 
