@@ -2,7 +2,6 @@ class Player {
     private _origin: BABYLON.Vector3;
     private _vrHelper: BABYLON.VRExperienceHelper;
     private _scene: BABYLON.Scene;
-    private _position: BABYLON.Vector3;
 
     constructor(scene: BABYLON.Scene, vrHelper: BABYLON.VRExperienceHelper) {
         this._scene = scene;
@@ -11,26 +10,25 @@ class Player {
 
         let player = this;
         //TODO: report - doesn't work without VR it seems 
-        /*this._scene.registerAfterRender(function (): void {
-            if (this._scene && this._scene.activeCamera) {
-                player._position = this._scene.activeCamera.position;
-                console.log('update player position to ', player._position);
-                if (player.isFartherThan(player._origin, 10)) {
-                    this.resetLocation();
-                }
+        this._scene.registerAfterRender(function (): void {
+            if (player.isFartherFromOriginThan(10)) {
+                player.resetLocation();
             }
-        });*/
+        });
     }
 
-    isFartherThan(target: BABYLON.Vector3, threshold: number): boolean {
-        if (!this._position || !target) return false;
-        let d = BABYLON.Vector3.Distance(this._position, target);
-        console.log('distance ', d);
+    isFartherFromOriginThan(threshold: number): boolean {
+        
+        let d = BABYLON.Vector3.Distance(this.getPosition(), this._origin);
         return  d > threshold;
     }
 
     resetLocation():void {
         this.teleportTo(this._origin);
+    }
+
+    getPosition(): BABYLON.Vector3 {
+        return this._scene.activeCamera.position;
     }
 
     teleportTo(target: BABYLON.Vector3): void {
@@ -40,7 +38,6 @@ class Player {
         // }
         if (this._vrHelper.teleportationEnabled)
         {
-            console.log('move player to ' + target);
             this._vrHelper.teleportCamera(target);
         } else {
             console.log("teleportation is not enabled");

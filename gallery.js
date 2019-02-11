@@ -9,7 +9,7 @@ var Game = /** @class */ (function () {
         this._engine = new BABYLON.Engine(this._canvas, true);
     }
     Game.prototype.setupArt = function () {
-        this._artManager = new ArtManager(this._scene, this._VRHelper);
+        this._artManager = new ArtManager(this._scene, this._player);
     };
     Game.prototype.setupSkybox = function () {
         var scene = this._scene;
@@ -71,10 +71,6 @@ var Game = /** @class */ (function () {
             }
             else if (keyName == "s") {
                 _this._player.resetLocation();
-                // setTimeout(() => {
-                //let p = this._scene.activeCamera.globalPosition;
-                //this._VRHelper.teleportCamera(p.add(new BABYLON.Vector3(130, 140, 0)));
-                // }, 15000);
             }
         });
     };
@@ -92,7 +88,7 @@ var Game = /** @class */ (function () {
         // Create a built-in "sphere" shape; with 16 segments and diameter of 2.
         var plane = BABYLON.MeshBuilder.CreatePlane('plane', { width: 3, height: 3 }, this._scene);
         // Move the sphere upward 1/2 of its height.
-        plane.position = startPosition.add(new BABYLON.Vector3(0, 1.5, 5));
+        plane.position = startPosition.add(new BABYLON.Vector3(0, 2, 5));
         //"\resources\inktobertopics2018.jpg"
         var titleMaterial = new BABYLON.StandardMaterial('title', this._scene);
         titleMaterial.diffuseTexture = new BABYLON.Texture('resources/inktobertopics2018.jpg', this._scene);

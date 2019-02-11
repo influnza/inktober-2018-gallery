@@ -21,7 +21,7 @@ class Game {
   
         
     setupArt(): void {
-        this._artManager = new ArtManager(this._scene, this._VRHelper);
+        this._artManager = new ArtManager(this._scene, this._player);
     }
 
     setupSkybox() {
@@ -110,7 +110,7 @@ class Game {
                                     {width: 3, height: 3}, this._scene);
 
         // Move the sphere upward 1/2 of its height.
-        plane.position = startPosition.add(new BABYLON.Vector3(0, 1.5, 5));
+        plane.position = startPosition.add(new BABYLON.Vector3(0, 2, 5));
 
         //"\resources\inktobertopics2018.jpg"
         var titleMaterial = new BABYLON.StandardMaterial('title', this._scene);
