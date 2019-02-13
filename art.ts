@@ -1,38 +1,39 @@
 class ArtManager
 {
-    private _artList: Array<Art>;
+    private _artListPool: Array<Art>;
+    private _artListScene: Array<Art>;
     private _scene: BABYLON.Scene;
     private _player: Player;
 
     constructor(scene: BABYLON.Scene, player: Player) {
         this._scene = scene;
         this._player = player;
-        this._artList = new Array<Art>(
-            new Art(29, 'double', 'Double', new BABYLON.Vector3(15, 666, -10)),
-            new Art(25, 'prickly', 'Needless to say', new BABYLON.Vector3(15, 666, -10)),
-            new Art(24, 'chop', 'Chop', new BABYLON.Vector3(15, 666, -10)),
-            new Art(22, 'expensive', '', new BABYLON.Vector3(15, 666, -10)),
-            new Art(21, 'drain', 'Drain', new BABYLON.Vector3(15, 666, -10)),
-            new Art(20, 'breakable', 'Breakable', new BABYLON.Vector3(5, 666, 10)),
-            new Art(19, 'scorched', 'Scorched', new BABYLON.Vector3(5, 666, 10)),
-            new Art(18, 'bottle', 'Bottle', new BABYLON.Vector3(0, 666, 0)),
-            new Art(17, 'swollen', 'Swollen', new BABYLON.Vector3(0, 666, 0)),
-            new Art(16, 'angular', 'Freedom fighters fighting for light', new BABYLON.Vector3(-2.26, 666, 4.29)),
-            new Art(15, 'weak', 'Weak', new BABYLON.Vector3(-2.26, 666, 4.29)),
-            new Art(14, 'clock', 'Alice in a clock', new BABYLON.Vector3(-2.26, 666, 4.29)),
-            new Art(13, 'guarded', 'Liberate', new BABYLON.Vector3(0, 666, 0)),
-            new Art(12, 'whale', 'Whale', new BABYLON.Vector3(-2.26, 666, 4.29)),   
-            new Art(11, 'cruel', 'Kraken', new BABYLON.Vector3(-2.26, 666, 4.29)),                     
-            new Art(10, 'flowing', 'Flowing', new BABYLON.Vector3(-2.26, 666, 4.29)),                     
-            new Art(9, 'precious', '', new BABYLON.Vector3(-3.35, -5.7, -23.2)),
-            new Art(8, 'star', 'Twinkle', new BABYLON.Vector3(-2.4, -5.7, -16.4)),
-            new Art(7, 'exhausted', ''/*'Exhaustion'*/, new BABYLON.Vector3(-3, -5.7, -10.2)),
-            new Art(6, 'drooling', ''/*'Slurpy season'*/, new BABYLON.Vector3(-2.26, -6.1, -2.6)),
-            new Art(5, 'chicken', 'Chicken', new BABYLON.Vector3(-3, -6.9, 4.29)),
-            new Art(4, 'spell', 'Ambient', new BABYLON.Vector3(-3, -7.55, 13)),
-            new Art(3, 'roasted', '', new BABYLON.Vector3(-3, -7.83, 18.93)),
-            new Art(2, 'tranquil', '', new BABYLON.Vector3(-3, -8, 26.33)),
-            new Art(1, 'poisonous', '', new BABYLON.Vector3(-11.7, -8.8, 28.3)),
+        this._artListPool = new Array<Art>(
+            new Art(this, 29, 'double', 'Double', new BABYLON.Vector3(15, 666, -10)),
+            new Art(this, 25, 'prickly', 'Needless to say', new BABYLON.Vector3(15, 666, -10)),
+            new Art(this, 24, 'chop', 'Chop', new BABYLON.Vector3(15, 666, -10)),
+            new Art(this, 22, 'expensive', '', new BABYLON.Vector3(15, 666, -10)),
+            new Art(this, 21, 'drain', 'Drain', new BABYLON.Vector3(15, 666, -10)),
+            new Art(this, 20, 'breakable', 'Breakable', new BABYLON.Vector3(5, 666, 10)),
+            new Art(this, 19, 'scorched', 'Scorched', new BABYLON.Vector3(5, 666, 10)),
+            new Art(this, 18, 'bottle', 'Bottle', new BABYLON.Vector3(0, 666, 0)),
+            new Art(this, 17, 'swollen', 'Swollen', new BABYLON.Vector3(0, 666, 0)),
+            new Art(this, 16, 'angular', 'Freedom fighters fighting for light', new BABYLON.Vector3(-2.26, 666, 4.29)),
+            new Art(this, 15, 'weak', 'Weak', new BABYLON.Vector3(-2.26, 666, 4.29)),
+            new Art(this, 14, 'clock', 'Alice in a clock', new BABYLON.Vector3(-2.26, 666, 4.29)),
+            new Art(this, 13, 'guarded', 'Liberate', new BABYLON.Vector3(0, 666, 0)),
+            new Art(this, 12, 'whale', 'Whale', new BABYLON.Vector3(-2.26, 666, 4.29)),   
+            new Art(this, 11, 'cruel', 'Kraken', new BABYLON.Vector3(-2.26, 666, 4.29)),                     
+            new Art(this, 10, 'flowing', 'Flowing', new BABYLON.Vector3(-2.26, 666, 4.29)),                     
+            new Art(this, 9, 'precious', '', new BABYLON.Vector3(-3.35, -5.7, -23.2)),
+            new Art(this, 8, 'star', 'Twinkle', new BABYLON.Vector3(-2.4, -5.7, -16.4)),
+            new Art(this, 7, 'exhausted', ''/*'Exhaustion'*/, new BABYLON.Vector3(-3, -5.7, -10.2)),
+            new Art(this, 6, 'drooling', ''/*'Slurpy season'*/, new BABYLON.Vector3(-2.26, -6.1, -2.6)),
+            new Art(this, 5, 'chicken', 'Chicken', new BABYLON.Vector3(-3, -6.9, 4.29)),
+            new Art(this, 4, 'spell', 'Ambient', new BABYLON.Vector3(-3, -7.55, 13)),
+            new Art(this, 3, 'roasted', '', new BABYLON.Vector3(-3, -7.83, 18.93)),
+            new Art(this, 2, 'tranquil', '', new BABYLON.Vector3(-3, -8, 26.33)),
+            new Art(this, 1, 'poisonous', '', new BABYLON.Vector3(-11.7, -8.8, 28.3)),
         );
 
         this.placeArt();
@@ -41,7 +42,7 @@ class ArtManager
     placeArt(): void {
         let unplacedArt = new Array<Art>();
         while(true) {
-            let art = this._artList.pop();
+            let art = this._artListPool.pop();
             if (!art) {
                 console.log('out of art');
                 break;
@@ -54,25 +55,32 @@ class ArtManager
 
             console.log("put art at location: " + p.x + " " + p.y + " " + p.z);
             art.createAt(this._scene, p);
-            this.registerRotation(art);
+            this.register(art);
 
         }
-        this._artList = unplacedArt;
+        this._artListPool = unplacedArt;
     }
 
     placeNextArtAt(p: BABYLON.Vector3) : void {
-        let art = this._artList.pop();
+        let art = this._artListPool.pop();
         if (art) {
             p.y += 2;
             console.log("put art at location: " + p.x + " " + p.y + " " + p.z);
             art.createAt(this._scene, p);
-            this.registerRotation(art);
+            this.register(art);
         } else {
             console.log('out of art');
         }
     }
 
-    registerRotation(art: Art): void {
+    stopAllSounds(): void {
+        for (var art in this._artListScene) {
+            this._artListScene[art].stopMusic();
+        }
+    }
+
+    register(art: Art): void {
+        this._artListScene.push(art);
         let player = this._player;
         this._scene.registerAfterRender(function (): void {
             art.lookAt(player);
@@ -100,26 +108,8 @@ class ArtData {
 
 class Art { 
     static IsPlayerNearArt = false;
-    static TriggerDistance = 10;
-    // static TypeEnum = new Array<string>(
-    //     'poisonous',
-    //     'tranquil',
-    //     'roasted',
-    //     'spell',
-    //     'chicken',
-    //     'drooling',
-    //     'exhausted',
-    //     'star',
-    //     'precious',
-    //     'flowing',
-    //     'cruel',
-    //     'whale',
-    //     'guarded',
-    //     'clock',
-    //     'angular',
-    //     'swollen',
-        
-    // );
+    static TriggerDistance = 8;
+    private _artManager: ArtManager;
     private _data: ArtData;
     private _position: BABYLON.Vector3;
     private _audioPath: string;
@@ -175,7 +165,8 @@ class Art {
         var currentRotation = { x: 0, y: 0 };
     }
 
-    constructor(number: any, type: string, title: string, position: BABYLON.Vector3) {
+    constructor(manager: ArtManager, number: any, type: string, title: string, position: BABYLON.Vector3) {
+        this._artManager = manager;
         this._data = new ArtData(number, type, title);
         this._position = position;
         this._imagePath = 'resources/image/' + type + '-inktober-2018.jpg';
@@ -235,27 +226,26 @@ class Art {
 
         this._mesh = plane;
         if (this._audioPath && this._audioPath.length > 0) {
-            try {
-                this._sound = new BABYLON.Sound(this._audioPath, this._audioPath, scene, null, {
-                    loop: true, autoplay: false,
-                    useCustomAttenuation: true,
-                    maxDistance: 50,//Art.TriggerDistance,
-                    refDistance: 5
-                });
+            this._sound = new BABYLON.Sound(this._audioPath, this._audioPath, scene, null, {
+                loop: true, autoplay: false,
+                useCustomAttenuation: true,
+                maxDistance: 50,//Art.TriggerDistance,
+                refDistance: 5
+            });
 
-                this._sound.setAttenuationFunction(function (currentVolume, currentDistance, maxDistance, refDistance, rolloffFactor) {
-                    if (currentDistance > maxDistance) return 0;
-                    if (currentDistance == 0) {
-                        return currentVolume;
-                    }
-                    return currentVolume * maxDistance / Math.max(currentDistance, refDistance);
-                });
+            if (!this._sound) {
+                return;
+            }
 
-                this._sound.attachToMesh(plane);
-            }
-            catch {
-                console.log("no audio at " + this._audioPath);
-            }
+            this._sound.setAttenuationFunction(function (currentVolume, currentDistance, maxDistance, refDistance, rolloffFactor) {
+                if (currentDistance > maxDistance) return 0;
+                if (currentDistance == 0) {
+                    return currentVolume;
+                }
+                return currentVolume * maxDistance / Math.max(currentDistance, refDistance);
+            });
+
+            this._sound.attachToMesh(plane);
         }
 
         this.addParticles(scene);
@@ -266,29 +256,28 @@ class Art {
     }
 
     addParticles(scene: BABYLON.Scene) : void {
-        try {
-            this._particles = new BABYLON.ParticleSystem(this._imagePath, 2000, scene);
-            this._particles.targetStopDuration = 5;
-            let particlePath = 'resources/particle/' + this._data.ArtType + '-particle.png';
-            this._particles.particleTexture = new BABYLON.Texture(particlePath, scene);
-            let emitterCenter = this._position.add(new BABYLON.Vector3(0, 5, 0));
-            this._particles.emitter = emitterCenter;
-            let emitterBox = new BABYLON.BoxParticleEmitter();
-            emitterBox.minEmitBox = new BABYLON.Vector3(-1.5, 0, -2);
-            emitterBox.maxEmitBox = new BABYLON.Vector3(1.5, 0, 2);
-            emitterBox.direction1 = new BABYLON.Vector3(2, -4, 0);
-            emitterBox.direction2 = new BABYLON.Vector3(-2, -4, 0);
-            this._particles.particleEmitterType = emitterBox;
-            this._particles.minSize = 0.1;
-            this._particles.maxSize = 1;
-            this._particles.emitRate = 70;
-            this._particles.minAngularSpeed = -0.4;
-            this._particles.maxAngularSpeed = 0.4;
-            this._particles.minLifeTime = 0.5;
-            this._particles.maxLifeTime = 3;
-        } catch (err) {
-            console.log("No particle: " + this._data.ArtType + ': ', err);
+        this._particles = new BABYLON.ParticleSystem(this._imagePath, 2000, scene);
+        this._particles.targetStopDuration = 5;
+        let particlePath = 'resources/particle/' + this._data.ArtType + '-particle.png';
+        this._particles.particleTexture = new BABYLON.Texture(particlePath, scene);
+        if (!this._particles.particleTexture) {
+            return;
         }
+        let emitterCenter = this._position.add(new BABYLON.Vector3(0, 5, 0));
+        this._particles.emitter = emitterCenter;
+        let emitterBox = new BABYLON.BoxParticleEmitter();
+        emitterBox.minEmitBox = new BABYLON.Vector3(-1.5, 0, -2);
+        emitterBox.maxEmitBox = new BABYLON.Vector3(1.5, 0, 2);
+        emitterBox.direction1 = new BABYLON.Vector3(2, -4, 0);
+        emitterBox.direction2 = new BABYLON.Vector3(-2, -4, 0);
+        this._particles.particleEmitterType = emitterBox;
+        this._particles.minSize = 0.1;
+        this._particles.maxSize = 1;
+        this._particles.emitRate = 70;
+        this._particles.minAngularSpeed = -0.4;
+        this._particles.maxAngularSpeed = 0.4;
+        this._particles.minLifeTime = 0.5;
+        this._particles.maxLifeTime = 3;        
     }
 
     toggleMusic(): void {
@@ -297,11 +286,20 @@ class Art {
         } 
         
         if (this._sound.isPlaying) {
-            console.log('stop ' + this._data.SongTitle);
-            this._sound.stop();
+            this._sound.pause();
         } else {
-            console.log('play ' + this._data.SongTitle);
+            this._artManager.stopAllSounds();
             this._sound.play();            
+        }
+    }
+
+    stopMusic(): void {
+        if (!this._sound || !this._sound.isReady) {
+            return;
+        } 
+        
+        if (this._sound.isPlaying) {
+            this._sound.pause();
         }
     }
 
