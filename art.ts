@@ -35,7 +35,7 @@ class ArtManager
             new Art(this, 2, 'tranquil', '', new BABYLON.Vector3(-3, -8, 26.33)),
             new Art(this, 1, 'poisonous', '', new BABYLON.Vector3(-11.7, -8.8, 28.3)),
         );
-        this._artListPool = new Array<Art>();
+        this._artListScene = new Array<Art>();
 
         this.placeArt();
     }
