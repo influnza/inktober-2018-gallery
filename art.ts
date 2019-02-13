@@ -24,10 +24,10 @@ class ArtManager
             new Art(12, 'whale', 'Whale', new BABYLON.Vector3(-2.26, 666, 4.29)),   
             new Art(11, 'cruel', 'Kraken', new BABYLON.Vector3(-2.26, 666, 4.29)),                     
             new Art(10, 'flowing', 'Flowing', new BABYLON.Vector3(-2.26, 666, 4.29)),                     
-            new Art(9, 'precious', '', new BABYLON.Vector3(-3.35, -5.2, -23.2)),
-            new Art(8, 'star', 'Twinkle', new BABYLON.Vector3(-2.4, -5.3, -16.4)),
-            new Art(7, 'exhausted', 'Exhaustion', new BABYLON.Vector3(-3, -5.7, -10.2)),
-            new Art(6, 'drooling', 'Slurpy season', new BABYLON.Vector3(-2.26, -6.1, -2.6)),
+            new Art(9, 'precious', '', new BABYLON.Vector3(-3.35, -5.7, -23.2)),
+            new Art(8, 'star', 'Twinkle', new BABYLON.Vector3(-2.4, -5.7, -16.4)),
+            new Art(7, 'exhausted', ''/*'Exhaustion'*/, new BABYLON.Vector3(-3, -5.7, -10.2)),
+            new Art(6, 'drooling', ''/*'Slurpy season'*/, new BABYLON.Vector3(-2.26, -6.1, -2.6)),
             new Art(5, 'chicken', 'Chicken', new BABYLON.Vector3(-3, -6.9, 4.29)),
             new Art(4, 'spell', 'Ambient', new BABYLON.Vector3(-3, -7.55, 13)),
             new Art(3, 'roasted', '', new BABYLON.Vector3(-3, -7.83, 18.93)),
@@ -80,7 +80,7 @@ class ArtManager
             if (art.isPlayerNear(player)) {
                 art.enter();
             } else {
-                art.pause();
+                art.leave();
             }
         });
     }
@@ -100,26 +100,26 @@ class ArtData {
 
 class Art { 
     static IsPlayerNearArt = false;
-    static TriggerDistance = 3;
-    static TypeEnum = new Array<string>(
-        'poisonous',
-        'tranquil',
-        'roasted',
-        'spell',
-        'chicken',
-        'drooling',
-        'exhausted',
-        'star',
-        'precious',
-        'flowing',
-        'cruel',
-        'whale',
-        'guarded',
-        'clock',
-        'angular',
-        'swollen',
+    static TriggerDistance = 10;
+    // static TypeEnum = new Array<string>(
+    //     'poisonous',
+    //     'tranquil',
+    //     'roasted',
+    //     'spell',
+    //     'chicken',
+    //     'drooling',
+    //     'exhausted',
+    //     'star',
+    //     'precious',
+    //     'flowing',
+    //     'cruel',
+    //     'whale',
+    //     'guarded',
+    //     'clock',
+    //     'angular',
+    //     'swollen',
         
-    );
+    // );
     private _data: ArtData;
     private _position: BABYLON.Vector3;
     private _audioPath: string;
@@ -153,14 +153,14 @@ class Art {
         }
 
         mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOutTrigger, mesh.material, "emissiveColor", mesh.material.emissiveColor))
-        mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, () => {
-                //window.addEventListener("pointerdown", pointerDownCallback);
-                mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, pointerDownCallback));
-                //window.addEventListener("pointerup", pointerUpCallback);
-                mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickUpTrigger, pointerUpCallback));
-                //window.addEventListener("pointermove", pointerMoveCallback);
-                mesh._scene.onPointerObservable.add(pointerMoveCallback);
-            }));
+        // mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, () => {
+        //         //window.addEventListener("pointerdown", pointerDownCallback);
+        //         mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickDownTrigger, pointerDownCallback));
+        //         //window.addEventListener("pointerup", pointerUpCallback);
+        //         mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickUpTrigger, pointerUpCallback));
+        //         //window.addEventListener("pointermove", pointerMoveCallback);
+        //         mesh._scene.onPointerObservable.add(pointerMoveCallback);
+        //     }));
         mesh.actionManager.registerAction(new BABYLON.SetValueAction(BABYLON.ActionManager.OnPointerOverTrigger, mesh.material, "emissiveColor", BABYLON.Color3.White()))
         /*mesh.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, () => {
             mesh.actionManager.remove window.removeEventListener("pointerdown", pointerDownCallback);
@@ -208,6 +208,29 @@ class Art {
         mat.backFaceCulling = false;
         mat.diffuseTexture = new BABYLON.Texture(this._imagePath, scene);
         plane.material = mat;
+
+        // setup UI elements
+        let playButton = new BABYLON.GUI.HolographicButton('play_button_' + this._data.ArtType);
+        Game.guiManager.addControl(playButton);
+
+        playButton.text = "play";
+        playButton.tooltipText = "Play the song: '" + this._data.SongTitle + "'";
+        playButton.linkToTransformNode(plane);
+
+        playButton.position.y = 2;
+        let art = this;
+        playButton.onPointerUpObservable.add(() => {
+            art.toggleMusic();
+        })
+
+        // let titleText = new BABYLON.GUI.TextBlock('title_' + this._data.ArtType, this._data.ArtType);
+        // titleText.color = "black";
+        // titleButton.linkToTransformNode(plane);
+        // titleButton.position.y = 2;
+        // titleText.outlineColor = "black";
+        // titleButton.content = titleText;
+        // titleText.fontSize = 42;
+
         this.makeOverOut(plane); // setup after material is set
 
         this._mesh = plane;
@@ -216,7 +239,7 @@ class Art {
                 this._sound = new BABYLON.Sound(this._audioPath, this._audioPath, scene, null, {
                     loop: true, autoplay: false,
                     useCustomAttenuation: true,
-                    maxDistance: Art.TriggerDistance,
+                    maxDistance: 50,//Art.TriggerDistance,
                     refDistance: 5
                 });
 
@@ -235,7 +258,7 @@ class Art {
             }
         }
 
-        //this.addParticles(scene);
+        this.addParticles(scene);
     }
 
     lookAt(player: Player) : void {
@@ -243,48 +266,58 @@ class Art {
     }
 
     addParticles(scene: BABYLON.Scene) : void {
-        this._particles = new BABYLON.ParticleSystem(this._imagePath, 2000, scene);
-        this._particles.targetStopDuration = 5;
-        let particlePath = 'resources/particle/' + this._data.ArtType + '-particle.png';
-        this._particles.particleTexture = new BABYLON.Texture(particlePath, scene);
-        let emitterCenter = this._position.add(new BABYLON.Vector3(0, 5, 2));
-        this._particles.emitter = emitterCenter;
-        let emitterBox = new BABYLON.BoxParticleEmitter();
-        emitterBox.minEmitBox = new BABYLON.Vector3(-1.5, 0, 0);
-        emitterBox.maxEmitBox = new BABYLON.Vector3(1.5, 0, 2);
-        emitterBox.direction1 = new BABYLON.Vector3(2, -4, 0);
-        emitterBox.direction2 = new BABYLON.Vector3(-2, -4, 0);
-        this._particles.particleEmitterType = emitterBox;
-        this._particles.minSize = 0.1;
-        this._particles.maxSize = 1;
-        this._particles.emitRate = 70;
-        this._particles.minAngularSpeed = -0.4;
-        this._particles.maxAngularSpeed = 0.4;
-        this._particles.minLifeTime = 0.5;
-        this._particles.maxLifeTime = 3;
+        try {
+            this._particles = new BABYLON.ParticleSystem(this._imagePath, 2000, scene);
+            this._particles.targetStopDuration = 5;
+            let particlePath = 'resources/particle/' + this._data.ArtType + '-particle.png';
+            this._particles.particleTexture = new BABYLON.Texture(particlePath, scene);
+            let emitterCenter = this._position.add(new BABYLON.Vector3(0, 5, 0));
+            this._particles.emitter = emitterCenter;
+            let emitterBox = new BABYLON.BoxParticleEmitter();
+            emitterBox.minEmitBox = new BABYLON.Vector3(-1.5, 0, -2);
+            emitterBox.maxEmitBox = new BABYLON.Vector3(1.5, 0, 2);
+            emitterBox.direction1 = new BABYLON.Vector3(2, -4, 0);
+            emitterBox.direction2 = new BABYLON.Vector3(-2, -4, 0);
+            this._particles.particleEmitterType = emitterBox;
+            this._particles.minSize = 0.1;
+            this._particles.maxSize = 1;
+            this._particles.emitRate = 70;
+            this._particles.minAngularSpeed = -0.4;
+            this._particles.maxAngularSpeed = 0.4;
+            this._particles.minLifeTime = 0.5;
+            this._particles.maxLifeTime = 3;
+        } catch (err) {
+            console.log("No particle: " + this._data.ArtType + ': ', err);
+        }
     }
 
-    pause(): void {
+    toggleMusic(): void {
+        if (!this._sound || !this._sound.isReady) {
+            return;
+        } 
+        
+        if (this._sound.isPlaying) {
+            console.log('stop ' + this._data.SongTitle);
+            this._sound.stop();
+        } else {
+            console.log('play ' + this._data.SongTitle);
+            this._sound.play();            
+        }
+    }
+
+    leave(): void {
         Art.IsPlayerNearArt = false;
 
-        if (this._sound && !this._sound.isPaused) {
-            this._sound.pause();
-        }
-
         if (this._particles && this._particles.isReady) {
-            this._particles.start();
+            this._particles.stop();
         }        
     }
 
     enter(): void {
         Art.IsPlayerNearArt = true;
 
-        if (this._sound && this._sound.isReady && !this._sound.isPlaying) {
-            this._sound.play();
-        }
-
         if (this._particles && this._particles.isAlive) {
-            this._particles.stop();
+            this._particles.start();
         }
     }
 }

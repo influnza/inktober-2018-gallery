@@ -1,8 +1,8 @@
-///<reference path="babylon.d.ts" />
+///<reference path="node_modules/babylonjs/babylon.d.ts" />
+///<reference path="node_modules/babylonjs-gui/babylon.gui.module.d.ts" />
 ///<reference path="art.ts" />
 ///<reference path="player.ts" />
 var Game = /** @class */ (function () {
-    //private _actionMap: Array;
     function Game(canvasElementId) {
         // Create canvas and engine.
         this._canvas = document.getElementById(canvasElementId);
@@ -60,7 +60,6 @@ var Game = /** @class */ (function () {
         window.addEventListener('keypress', function (event) {
             var keyName = event.key;
             if (keyName == " ") {
-                //let p = this._VRHelper.currentVRCamera.globalPosition;
                 var p = _this._scene.activeCamera.globalPosition;
                 console.log("current position: " + p.x + " " + p.y + " " + p.z);
             }
@@ -77,9 +76,10 @@ var Game = /** @class */ (function () {
     Game.prototype.createScene = function () {
         // Create a basic BJS Scene object.
         this._scene = new BABYLON.Scene(this._engine);
+        Game.guiManager = new BABYLON.GUI.GUI3DManager(this._scene);
         this.setupVR();
         this._player = new Player(this._scene, this._VRHelper);
-        var startPosition = new BABYLON.Vector3(-18, -9.149195517777458, 25);
+        var startPosition = new BABYLON.Vector3(-18, -9.47, 25);
         this._player.placeAt(startPosition);
         this.setupArt();
         this.setupActions();
@@ -87,8 +87,7 @@ var Game = /** @class */ (function () {
         this._light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(0, 1, 0), this._scene);
         // Create a built-in "sphere" shape; with 16 segments and diameter of 2.
         var plane = BABYLON.MeshBuilder.CreatePlane('plane', { width: 3, height: 3 }, this._scene);
-        // Move the sphere upward 1/2 of its height.
-        plane.position = startPosition.add(new BABYLON.Vector3(0, 2, 5));
+        plane.position = startPosition.add(new BABYLON.Vector3(0, 1, 5));
         //"\resources\inktobertopics2018.jpg"
         var titleMaterial = new BABYLON.StandardMaterial('title', this._scene);
         titleMaterial.diffuseTexture = new BABYLON.Texture('resources/inktobertopics2018.jpg', this._scene);

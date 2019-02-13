@@ -1,4 +1,5 @@
-///<reference path="babylon.d.ts" />
+///<reference path="node_modules/babylonjs/babylon.d.ts" />
+///<reference path="node_modules/babylonjs-gui/babylon.gui.module.d.ts" />
 ///<reference path="art.ts" />
 ///<reference path="player.ts" />
 
@@ -12,6 +13,8 @@ class Game {
     private _artManager: ArtManager;
     private _player: Player;
     //private _actionMap: Array;
+
+    public static guiManager: BABYLON.GUI.GUI3DManager;
 
     constructor(canvasElementId : string) {
         // Create canvas and engine.
@@ -78,7 +81,6 @@ class Game {
         window.addEventListener('keypress', (event) => {
             const keyName = event.key;
             if (keyName == " ") {
-                //let p = this._VRHelper.currentVRCamera.globalPosition;
                 let p = this._scene.activeCamera.globalPosition;
                 console.log("current position: " + p.x + " " + p.y + " " + p.z);
             } else if (keyName == "t") {
@@ -94,9 +96,10 @@ class Game {
     createScene() : void {
         // Create a basic BJS Scene object.
         this._scene = new BABYLON.Scene(this._engine);
+        Game.guiManager = new BABYLON.GUI.GUI3DManager(this._scene);
         this.setupVR();
         this._player = new Player(this._scene, this._VRHelper);
-        let startPosition = new BABYLON.Vector3(-18, -9.149195517777458, 25);
+        let startPosition = new BABYLON.Vector3(-18, -9.47, 25);
         this._player.placeAt(startPosition);
         this.setupArt();
 
@@ -109,8 +112,7 @@ class Game {
         let plane = BABYLON.MeshBuilder.CreatePlane('plane',
                                     {width: 3, height: 3}, this._scene);
 
-        // Move the sphere upward 1/2 of its height.
-        plane.position = startPosition.add(new BABYLON.Vector3(0, 2, 5));
+        plane.position = startPosition.add(new BABYLON.Vector3(0, 1, 5));
 
         //"\resources\inktobertopics2018.jpg"
         var titleMaterial = new BABYLON.StandardMaterial('title', this._scene);
