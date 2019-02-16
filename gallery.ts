@@ -184,7 +184,19 @@ class Game {
         //finally, say which mesh will be collisionable
         for (let m in meshes) { 
             let mesh = meshes[m];
-            this._VRHelper.addFloorMesh(meshes[m]);
+            console.log("simplify "+ mesh.name);
+            mesh.simplify([{ quality: 0.9, distance: 25, optimizeMesh:true }, { quality: 0.3, distance: 50, optimizeMesh:true }], 
+                true, BABYLON.SimplificationType.QUADRATIC, function() {
+                     alert("LOD finised, let's have a beer!");
+                });
+            this._VRHelper.addFloorMesh(mesh);
+
+            let capacity = 1024;
+            let maxDepth = 10;
+            
+            mesh.createOrUpdateSubmeshesOctree(capacity, maxDepth);
+            mesh.useOctreeForCollisions = true;
+            mesh.useOctreeForPicking = true;
             console.log('add floor mesh '+ mesh.name);
         }
     }
