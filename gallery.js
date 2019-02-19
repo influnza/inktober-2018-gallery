@@ -146,8 +146,12 @@ var Game = /** @class */ (function () {
         //finally, say which mesh will be collisionable
         for (var m in meshes) {
             var mesh = meshes[m];
-            this._VRHelper.addFloorMesh(meshes[m]);
-            console.log('add floor mesh ' + mesh.name);
+            var capacity = 512;
+            var maxDepth = 4;
+            mesh.createOrUpdateSubmeshesOctree(capacity, maxDepth);
+            mesh.useOctreeForCollisions = true;
+            mesh.useOctreeForPicking = true;
+            this._VRHelper.addFloorMesh(mesh);
         }
     };
     Game.prototype.doRender = function () {
