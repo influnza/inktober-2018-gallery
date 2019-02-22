@@ -129,17 +129,16 @@ class Game {
 
         let game = this;
         //BABYLON.SceneLoader.Append("./resources/environment/", "scene.gltf", this._scene, function (scene) {
-        //let rootUrl = "./resources/environment/";
-        let rootUrl = "https://inktober2018.blob.core.windows.net/resources/environment/";
-        BABYLON.SceneLoader.Append(rootUrl, "rempart.glb", this._scene, function (scene) {
+        let rootUrl = "./resources/environment/";
+        //BABYLON.SceneLoader.Append("https://poly.googleapis.com/downloads/5vbJ5vildOq/7PwcNb5odU_/", "model.gltf", this._scene, function (scene) {
+        //let rootUrl = "https://inktober2018.blob.core.windows.net/resources/environment/";
+        BABYLON.SceneLoader.Append(rootUrl, "rempart-s.glb", this._scene, function (scene) {
             for (var m in scene.meshes) {
                 let mesh = scene.meshes[m];
-                console.log(scene.meshes[m].name);
                 mesh.checkCollisions = true;
             }
             let castle = scene.meshes.filter(mesh => (mesh.name.indexOf('__root__') >= 0) 
-                || (mesh.name.indexOf('node') >= 0) 
-                || (mesh.name.indexOf('Object') >= 0)
+                || (mesh.name.indexOf('ground') >= 0)
                 || (mesh.name.indexOf('Floor') >= 0)).map(x => x as BABYLON.Mesh);
             
             game.setupCollisionsFloor(castle);
@@ -184,13 +183,15 @@ class Game {
         //finally, say which mesh will be collisionable
         for (let m in meshes) { 
             let mesh = meshes[m];
-            let capacity = 512;
-            let maxDepth = 4;
+            this._VRHelper.addFloorMesh(mesh);
+
+            /*let capacity = 2048;
+            let maxDepth = 16;
 
             mesh.createOrUpdateSubmeshesOctree(capacity, maxDepth);
             mesh.useOctreeForCollisions = true;
-            mesh.useOctreeForPicking = true;
-            this._VRHelper.addFloorMesh(mesh);
+            mesh.useOctreeForPicking = true;*/
+            console.log("setup floor: " + mesh.name);
         }
     }
 

@@ -100,17 +100,16 @@ var Game = /** @class */ (function () {
         this.setupSkybox();
         var game = this;
         //BABYLON.SceneLoader.Append("./resources/environment/", "scene.gltf", this._scene, function (scene) {
-        //let rootUrl = "./resources/environment/";
-        var rootUrl = "https://inktober2018.blob.core.windows.net/resources/environment/";
+        var rootUrl = "./resources/environment/";
+        //BABYLON.SceneLoader.Append("https://poly.googleapis.com/downloads/5vbJ5vildOq/7PwcNb5odU_/", "model.gltf", this._scene, function (scene) {
+        //let rootUrl = "https://inktober2018.blob.core.windows.net/resources/environment/";
         BABYLON.SceneLoader.Append(rootUrl, "rempart.glb", this._scene, function (scene) {
             for (var m in scene.meshes) {
                 var mesh = scene.meshes[m];
-                console.log(scene.meshes[m].name);
                 mesh.checkCollisions = true;
             }
             var castle = scene.meshes.filter(function (mesh) { return (mesh.name.indexOf('__root__') >= 0)
-                || (mesh.name.indexOf('node') >= 0)
-                || (mesh.name.indexOf('Object') >= 0)
+                || (mesh.name.indexOf('ground') >= 0)
                 || (mesh.name.indexOf('Floor') >= 0); }).map(function (x) { return x; });
             game.setupCollisionsFloor(castle);
         });
@@ -146,12 +145,13 @@ var Game = /** @class */ (function () {
         //finally, say which mesh will be collisionable
         for (var m in meshes) {
             var mesh = meshes[m];
-            var capacity = 512;
-            var maxDepth = 4;
+            this._VRHelper.addFloorMesh(mesh);
+            var capacity = 2048;
+            var maxDepth = 16;
             mesh.createOrUpdateSubmeshesOctree(capacity, maxDepth);
             mesh.useOctreeForCollisions = true;
             mesh.useOctreeForPicking = true;
-            this._VRHelper.addFloorMesh(mesh);
+            console.log("setup floor: " + mesh.name);
         }
     };
     Game.prototype.doRender = function () {
